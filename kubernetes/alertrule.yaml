@@ -1,0 +1,72 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: microk8s-cert-alerts
+  namespace: monitoring
+  labels:
+    release: prom
+spec:
+  groups:
+    - name: microk8s-cert.rules
+
+      rules:
+
+        - alert: MicroK8sCertificateExpired
+          expr: microk8s_cert_expired == 1
+          for: 5m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "MicroK8s certificate expired"
+            description: |
+              Certificate {{ $labels.cert }}
+              on node {{ $labels.node }}
+              has expired.
+
+        - alert: MicroK8sCertificateExpiringSoon
+          expr: |
+            microk8s_cert_days_remaining{cert=~"ca|server|front-proxy-client"} < 30
+            and
+            microk8s_cert_expired == 0
+          for: 1h
+
+          labels:
+            severity: warning
+
+          annotations:
+            summary: "MicroK8s certificate expiring soon"
+            description: |
+              Certificate {{ $labels.cert }}
+              on node {{ $labels.node }}
+              will expire in
+              {{ printf "%.0f" $value }} days.
+
+        - alert: MicroK8sCertificateExpiringCritical
+          expr: |
+            microk8s_cert_days_remaining{cert=~"ca|server|front-proxy-client"} < 14
+            and
+            microk8s_cert_expired == 0
+          for: 15m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "MicroK8s certificate expiring within 14 days"
+            description: |
+              Certificate {{ $labels.cert }}
+              on node {{ $labels.node }}
+              will expire in
+              {{ printf "%.0f" $value }} days.
+
+        - alert: MicroK8sCertReadFailure
+          expr: microk8s_cert_exporter_certs_failed > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate read failure"
+            description: |
+              {{ $value }} certificate files could not be read.

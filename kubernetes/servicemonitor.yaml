@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: microk8s-cert-exporter
+  namespace: monitoring
+
+  labels:
+    release: prom
+
+spec:
+  selector:
+    matchLabels:
+      app: microk8s-cert-exporter
+
+  namespaceSelector:
+    matchNames:
+      - monitoring
+
+  endpoints:
+    - port: metrics
+      interval: 1m
+      scrapeTimeout: 30s
+      path: /metrics

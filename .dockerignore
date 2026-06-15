@@ -1,0 +1,7 @@
+kubernetes/
+
+.git
+.gitignore
+README.md
+
+*.md
