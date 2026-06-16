@@ -18,22 +18,21 @@ spec:
 
     spec:
       automountServiceAccountToken: false
-
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
       containers:
         - name: exporter
           image: kenjicloud/microk8s-cert-exporter:latest
           imagePullPolicy: IfNotPresent
-
           ports:
             - name: metrics
               containerPort: 9101
-
           env:
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-
+                  
             - name: CERT_DIR
               value: /host-certs
 

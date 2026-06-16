@@ -1,12 +1,15 @@
 # MicroK8s Certificate Exporter
+MicroK8s-focused Prometheus exporter for monitoring control-plane certificate expiration.
 ![Go](https://img.shields.io/badge/Go-1.26-blue?logo=go)
 ![Docker](https://img.shields.io/badge/Docker-Multi--Arch-2496ED?logo=docker&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?logo=prometheus&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-MicroK8s-orange)
+![Architecture](https://img.shields.io/badge/Architecture-amd64%20%7C%20arm64-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Prometheus exporter for monitoring MicroK8s certificate expiration.
+MicroK8s-focused Prometheus exporter for monitoring control-plane certificate expiration.
 
-This exporter runs as a DaemonSet on every Kubernetes node, reads MicroK8s certificate files directly from the host, and exposes certificate expiration metrics for Prometheus and Grafana.
+This exporter runs as a DaemonSet on MicroK8s control-plane nodes, reads certificate files directly from the host filesystem, and exposes certificate expiration metrics for Prometheus and Grafana, reads MicroK8s certificate files directly from the host, and exposes certificate expiration metrics for Prometheus and Grafana.
 
 Lightweight Prometheus exporter for monitoring MicroK8s certificate expiration.
 
@@ -20,6 +23,8 @@ Lightweight Prometheus exporter for monitoring MicroK8s certificate expiration.
 * Multi-architecture support (amd64 / arm64)
 * Hardened security configuration
 * Configurable certificates via environment variables
+* Runs only on MicroK8s control-plane nodes
+* No Kubernetes API permissions required
 
 ## Monitored Certificates
 
@@ -135,15 +140,19 @@ Number of certificate files that could not be read.
           v
 +-------------------+
 | DaemonSet         |
-| (one per node)    |
+| Control Plane     |
+| Nodes Only        |
 +---------+---------+
           |
           v
 +-------------------+
-| Host Certificates |
-| /var/snap/...     |
+| MicroK8s Certs    |
+| server.crt        |
+| front-proxy-...   |
 +-------------------+
 ```
+
+
 
 ## Security
 
@@ -176,6 +185,17 @@ securityContext:
 ```
 
 ## Installation
+
+### Control Plane Scheduling
+
+The exporter is intended to run only on MicroK8s control-plane nodes.
+
+Example:
+
+```yaml
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+```
 
 Deploy all Kubernetes resources:
 
@@ -317,11 +337,14 @@ Tested with:
 
 * MicroK8s
 
-Designed specifically for monitoring MicroK8s-managed certificates:
+Designed specifically for monitoring MicroK8s control-plane certificates.
 
-* `server.crt`
-* `front-proxy-client.crt`
-* `ca.crt`
+Default certificates:
+
+* server.crt
+* front-proxy-client.crt
+
+Additional certificates can be configured using the CERT_FILES environment variable.
 
 ## License
 
