@@ -8,33 +8,26 @@ metadata:
 spec:
   groups:
     - name: microk8s-cert.rules
-
       rules:
-
         - alert: MicroK8sCertificateExpired
           expr: microk8s_cert_expired == 1
           for: 5m
-
           labels:
             severity: critical
-
           annotations:
             summary: "MicroK8s certificate expired"
             description: |
               Certificate {{ $labels.cert }}
               on node {{ $labels.node }}
               has expired.
-
         - alert: MicroK8sCertificateExpiringSoon
           expr: |
             microk8s_cert_days_remaining{cert=~"ca|server|front-proxy-client"} < 30
             and
             microk8s_cert_expired == 0
           for: 1h
-
           labels:
             severity: warning
-
           annotations:
             summary: "MicroK8s certificate expiring soon"
             description: |
@@ -49,10 +42,8 @@ spec:
             and
             microk8s_cert_expired == 0
           for: 15m
-
           labels:
             severity: critical
-
           annotations:
             summary: "MicroK8s certificate expiring within 14 days"
             description: |

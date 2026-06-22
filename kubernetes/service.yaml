@@ -5,11 +5,9 @@ metadata:
   namespace: monitoring
   labels:
     app: microk8s-cert-exporter
-
 spec:
   selector:
     app: microk8s-cert-exporter
-
   ports:
     - name: metrics
       port: 9101

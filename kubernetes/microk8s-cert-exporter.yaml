@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: microk8s-cert-exporter
+  namespace: monitoring
+  labels:
+    app: microk8s-cert-exporter
+spec:
+  selector:
+    matchLabels:
+      app: microk8s-cert-exporter
+  template:
+    metadata:
+      labels:
+        app: microk8s-cert-exporter
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        node.kubernetes.io/microk8s-controlplane: "microk8s-controlplane"
+      containers:
+        - name: exporter
+          image: kenjicloud/microk8s-cert-exporter:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 9101
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: CERT_DIR
+              value: /host-certs
+            - name: CERT_FILES
+              value: server.crt,front-proxy-client.crt
+            - name: SCRAPE_INTERVAL
+              value: 60m
+            - name: LISTEN_ADDRESS
+              value: ":9101"
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: certs
+              mountPath: /host-certs
+              readOnly: true
+      volumes:
+        - name: certs
+          hostPath:
+            path: /var/snap/microk8s/current/certs
+            type: Directory
